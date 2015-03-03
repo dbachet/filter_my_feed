@@ -13,12 +13,14 @@ class TweetCollection
         tweet.text[search_term]
       end
     end
+    self
   end
 
   def order
     @collection = @collection.sort do |a, b|
       b.user.followers_count <=> a.user.followers_count
     end
+    self
   end
 
   def to_array_of_strings
