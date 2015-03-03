@@ -1,3 +1,4 @@
+require "spec_helper"
 require "tweet_collection"
 
 RSpec.describe TweetCollection do
@@ -22,16 +23,24 @@ RSpec.describe TweetCollection do
                         name: "Louis",
                         followers_count: 30))
   }
+  let(:not_same_case_matching_tweet) {
+    double("Twitter::Tweet",
+           text: "FOO zone",
+           user: double("Twitter::User",
+                        name: "Louis",
+                        followers_count: 30))
+  }
   let(:search_term) { "foo" }
-  let(:tweets) { [matching_tweet, not_matching_tweet] }
+  let(:tweets) { [matching_tweet, not_matching_tweet, not_same_case_matching_tweet] }
 
   subject { TweetCollection.new(tweets: tweets, search_term: search_term) }
 
   describe "#initialize" do
     specify do
-      expect( subject.tweets      ).to eql tweets
-      expect( subject.collection  ).to eql tweets
-      expect( subject.search_term ).to eql search_term
+      expect( subject.tweets         ).to eql tweets
+      expect( subject.collection     ).to eql tweets
+      expect( subject.search_term    ).to eql search_term
+      expect( subject.case_sensitive ).to eql false
     end
   end
 
@@ -63,7 +72,7 @@ RSpec.describe TweetCollection do
       before { subject.search }
 
       context "when there is a matching tweet" do
-        let(:collection) { [matching_tweet] }
+        let(:collection) { [matching_tweet, not_same_case_matching_tweet] }
 
         specify do
           expect( subject.collection ).to eql collection
@@ -73,6 +82,16 @@ RSpec.describe TweetCollection do
       context "when there is no matching tweet" do
         let(:tweets) { [not_matching_tweet] }
         let(:collection) { [] }
+
+        specify do
+          expect( subject.collection ).to eql collection
+        end
+      end
+
+      context "when search is case sensitive" do
+        let(:collection) { [matching_tweet] }
+
+        subject { TweetCollection.new(tweets: tweets, search_term: search_term, case_sensitive: true) }
 
         specify do
           expect( subject.collection ).to eql collection
@@ -95,7 +114,8 @@ RSpec.describe TweetCollection do
     let(:array_of_strings) {
       [
         "#{matching_tweet.user.name}: #{matching_tweet.text}",
-        "#{not_matching_tweet.user.name}: #{not_matching_tweet.text}"
+        "#{not_matching_tweet.user.name}: #{not_matching_tweet.text}",
+        "#{not_same_case_matching_tweet.user.name}: #{not_same_case_matching_tweet.text}"
       ]
     }
 
