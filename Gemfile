@@ -11,3 +11,7 @@ group :test do
   gem "rspec-mocks"
   gem "vcr"
 end
+
+group :development, :test do
+  gem "pry"
+end
